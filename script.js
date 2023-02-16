@@ -1,5 +1,4 @@
 const apiKey = "c513fce94bcc9767a59e5531b4b39a64";
-// const apiCountryURL = "https://countryflagsapi.com/png/";
 const apiCountryURL = "https://flagsapi.com/";
 
 const cityInput = document.getElementById("city");
@@ -16,6 +15,16 @@ const wind = document.querySelector("#wind span");
 const weatherData = document.querySelector(".weather-data");
 const errorMessage = document.getElementById("error-message");
 
+const getWeatherLocation = async (lat, lon) => {
+  const apiWeatherURL = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}&lang=pt_br`;
+
+  const res = await fetch(apiWeatherURL);
+  const data = await res.json();
+
+  console.log(data);
+  return data;
+};
+
 const getWeatherData = async (city) => {
   const apiWeatherURL = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}&lang=pt_br`;
 
@@ -24,6 +33,26 @@ const getWeatherData = async (city) => {
 
   console.log(data);
   return data;
+};
+
+const showWeatherLocation = async (lat, lon) => {
+  const data = await getWeatherLocation(lat, lon);
+  errorMessage.setAttribute("class", "hide");
+  weatherData.removeAttribute("class", "hide");
+
+  citySpan.innerText = data.name;
+  temp.innerText = parseInt(data.main.temp);
+  desc.innerText = data.weather[0].description;
+  weatherIcon.setAttribute(
+    "src",
+    `http://openweathermap.org/img/wn/${data.weather[0].icon}.png`
+  );
+  country.setAttribute(
+    "src",
+    apiCountryURL + data.sys.country + "/flat/32.png"
+  );
+  umidity.innerText = `${data.main.humidity}%`;
+  wind.innerText = `${data.wind.speed}km/h`;
 };
 
 const showWeatherData = async (city) => {
@@ -65,3 +94,19 @@ cityInput.addEventListener("keyup", (e) => {
     showWeatherData(city);
   }
 });
+
+let x = document.getElementById("x");
+
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition);
+  } else {
+    x.innerHTML = "Geolocalização não é suportada pelo seu navegador.";
+  }
+}
+
+function showPosition(position) {
+  showWeatherLocation(position.coords.latitude, position.coords.longitude);
+}
+
+getLocation();
